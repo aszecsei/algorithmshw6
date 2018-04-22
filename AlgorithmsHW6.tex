@@ -162,7 +162,57 @@ For any flow network $G$ and any vertices $u$ and $v$ let $bottleneck_G(u,v)$ de
 
 \part 
 
-Solution
+\begin{algorithm}
+	\begin{algorithmic}[1]
+		\Function{Bottleneck}{$G, u, v$}
+			\State $queue \gets$ an empty heap
+			\State $current \gets u$
+			\ForAll{$vertex$ in $G.vertices$}
+				\If{$vertex = u$}
+					\State $vertex.weight \gets \infty$
+				\Else
+					\State $vertex.weight \gets -\infty$
+				\EndIf \Comment{We'll use these weights in our heap}
+				\State insert $vertex$ into $queue$
+			\EndFor
+			\While{$\neg v.seen$} \Comment{Find the path with the bottleneck by building a tree}
+				\State $current.seen \gets \Var{True}$
+				\ForAll{$d$ in $current.neighbors$}
+					\If{$\neg d.seen$}
+						\If{$edge(current,d).weight > d.weight$}
+							\State delete $d$ from $queue$
+							\State $d.weight \gets edge(current, d).weight$
+							\State $d.parent \gets current$
+							\State insert $d$ into $queue$
+						\EndIf
+					\EndIf \Comment{Update the vertex weight of a neighbor of $current$}
+				\EndFor
+				\State $current \gets$ dequeue the max vertex in $queue$
+			\EndWhile
+			\State $c \gets v$
+			\State $min \gets \infty$
+			\While{$c \neq u$} \Comment{Find the minimal edge in the bottlenecking path}
+				\If{$edge_{c, c.parent}.weight < min$}
+					\State $min \gets edge_{c, c.parent}.weight$
+				\EndIf
+				\State $c \gets c.parent$
+			\EndWhile
+			\State \Return $min$
+		\EndFunction
+	\end{algorithmic}
+\end{algorithm}
+
+This assumes the function should return the \emph{weight} of the bottlenecking edge; however, it can trivially be modified to return the edge itself.\\
+
+This algorithm is essentially a modification of Prim's algorithm, where instead of searching for minimally-weighted edges, we instead search for maximally-weighted edges. To do this, we use a priority queue (using a binary heap).\\
+
+We can split up our algorithm into three sections. The first is where we add each vertex into the priority queue. This is a total of $V$ insertions into the queue, each of which takes $O(\log V)$ time, for a total runtime of $O(V \log V)$.\\
+
+Second, we build a spanning tree in $G$ until we have found a route from $u$ to $v$. To do this, we continually dequeue vertices from our queue. For each unvisited neighboring vertex, we check if we've found a better edge to connect it to our tree. If so, we update the weight of the vertex, and also update its ``parent'' in the tree. We continue in this fashion until $v$ has been added to the tree. Each time we attempt to update a vertex, it means we have traversed a new edge in the graph; updating the vertex involves a successive deletion and insertion, both of which are $O(\log V)$. Since this can happen at most $E$ times, the total running time for this section is $O(E \log V)$.\\
+
+Last, we determine the smallest edge in the path from $v$ to $u$. This is more straightforward, as it is a simple $O(E)$ loop.\\
+
+Our total running time is thus $O((E + V)\log V)$; since $V$ is $O(E)$ for any connected graph, we can say that it is $O(E \log V)$.
 
 \end{homeworkProblem}
 
