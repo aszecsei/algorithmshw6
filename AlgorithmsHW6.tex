@@ -231,13 +231,73 @@ Both algorithms should be significantly faster than recomputing the maximum flow
 
 \solution\\
 
-\part 
+\part
 
-Solution
+\begin{algorithm}
+	\begin{algorithmic}[1]
+		\Function{UpdateMaxFlow}{$G, source, sink$}
+			\State $path \gets \Call{BFS}{G, source, sink}$ \Comment {Assume this works similarly to original Ford-Fulkerson algorithm}
+			\If{$path$ exists} \Comment{Check if there's an augmenting path}
+				\State $r \gets$ the minimum residual capacity of $(u, v) \forall (u, v) \in path$
+				\ForAll{$edge$ in $path$}
+					\If{$edge$ is a forward edge}
+						\State $G.flow(edge) \gets G.flow(edge) + r$
+					\Else
+						\State $G.flow(edge) \gets G.flow(edge) - r$
+					\EndIf
+				\EndFor
+			\EndIf
+			\State \Return $G.flow$
+		\EndFunction
+	\end{algorithmic}
+\end{algorithm}
+		
+The idea for this algorithm is straightforward. We assume the edge has already been increased before the algorithm is run; we then search for an augmenting path, which runs in $O(V + E)$ time using breadth-first search. If an augmenting path exists, we run through a single iteration of Ford-Fulkerson, updating edges along the path; this runtime is clearly bounded by $O(E)$. If an augmenting path does not exist, no alterations are required. Our algorithm thus runs in $O(V + E)$ time.\\
 
-\part 
+We only need to run through the Ford-Fulkerson algorithm at most once, since the maximum flow can only increase by one (the same amount as we increased an edge capacity). The augmenting path, then, must then increase the flow by 1, which satisfies our requirements.\\
 
-Solution
+\pagebreak
+\part
+
+\begin{algorithm}
+	\begin{algorithmic}[1]
+		\Function{UpdateMaxFlow}{$G, source, sink$}
+			\State $e \gets \Var{Null}$ \Comment{We need to make our flow satisfy the new constraint}
+			\ForAll{$edge$ in $G$}
+				\If{$G.flow(edge) - G.capacity(edge) > 0$}
+					\State $e \gets edge$ \Comment{Find an edge with negative residual flow}
+				\EndIf
+			\EndFor
+			\If{$e = \Var{Null}$}
+				\State \Return $G.flow$ \Comment{If the edge has non-negative residual flow, we didn't affect a bottleneck}
+			\EndIf
+			\State $path \gets$ a path from $source$ to $sink$ which includes $e$ \Comment{DFS would likely be best here}
+			\ForAll{$edge$ in $path$} \Comment{Decrease the flow down the path from $source$ to $sink$}
+				\If{$edge$ is a forward edge}
+					\State $G.flow(edge) \gets G.flow(edge) - 1$
+				\Else
+					\State $G.flow(edge) \gets G.flow(edge) + 1$
+				\EndIf
+			\EndFor
+			\State $path \gets \Call{BFS}{G, source, sink}$ \Comment {Again, do a single iteration of Ford-Fulkerson}
+			\If{$path$ exists} \Comment{Check if there's an augmenting path}
+				\State $r \gets$ the minimum residual capacity of $edge \forall edge \in path$
+				\ForAll{$edge$ in $path$}
+					\If{$edge$ is a forward edge}
+						\State $G.flow(edge) \gets G.flow(edge) + r$
+					\Else
+						\State $G.flow(edge) \gets G.flow(edge) - r$
+					\EndIf
+				\EndFor
+			\EndIf
+			\State \Return $G.flow$
+		\EndFunction
+	\end{algorithmic}
+\end{algorithm}
+
+For this algorithm, we must first resolve the new constraints. Specifically, if an edge has had its capacity reduced such that its residual flow has become negative, we must decrease the flow through that edge so that its residual flow becomes zero. Finding an edge from $source$ to $sink$ which includes that negative edge is relatively easy; we can perform a depth-first search, attempting to follow the flow from this overloaded edge through the graph. In the worst case, this has a running time of $O(V + E)$.\\
+
+Now, all of our constraints have been satisfied, but the resultant flow may be sub-optimal. However, the flow can only be at most 1 less than the maximum flow, as we have decreased edges by 1; therefore, similar to part (a), we can simply try to find an augmenting path and run a single iteration of Ford-Fulkerson. As in part (a), this has a run-time of $O(V + E)$, and so our final algorithm also has a run-time of $O(V + E)$.
 
 \end{homeworkProblem}
 
