@@ -400,7 +400,7 @@ Your input is a two dimensional array $IsWhite[1..n, 1..n]$ of booleans, indicat
 					\EndIf
 				\EndFor
 			\EndFor \Comment{Add possible nodes (in this case, white nodes)}
-			\State \Return $\Call{MaxFlow}{G} = n$
+			\State \Return whether or not the resultant flow in $\Call{MaxFlow}{G}$ equals $n$
 		\EndFunction
 	\end{algorithmic}
 \end{algorithm}
@@ -426,14 +426,70 @@ The cost to build this graph is simply $O(V+E) = O(n^2)$; Orlin's algorithm prov
 These devices can communicate only within a limited range. We assume all the devices are identical; there is a distance $D$ such that two devices can communicate if and only if the distance between them is at most $D$.\\
 
 We would like our ad-hoc network to be reliable, but because the devices are cheap and low-powered, they frequently fail. If a device detects that it is likely to fail, it should transmit its information to some other $backup$ device within its communication range. We require each device $x$ to have $k$ potential backup devices, all within distance $D$ of $x$; we call
-these $k$ devices the \textbf{\textit{backup set}} of x. Also, we do not want any device to be in the backup set of too many other devices; otherwise, a single failure might affect a large fraction of the network. \\
+these $k$ devices the \emph{backup set} of $x$. Also, we do not want any device to be in the backup set of too many other devices; otherwise, a single failure might affect a large fraction of the network. \\
 
-So suppose we are given the communication radius $D$, parameters $b$ and $k$, and an array $d$[1 .. $n$, 1 .. $n$] of distances, where $d[i, j]$ is the distance between device $i$ and device $j$. Describe an algorithm that either computes a backup set of size $k$ for each of the $n$ devices, such that no device appears in more than $b$ backup sets, or reports (correctly) that
+So suppose we are given the communication radius $D$, parameters $b$ and $k$, and an array $d[1 .. n, 1 .. n]$ of distances, where $d[i, j]$ is the distance between device $i$ and device $j$. Describe an algorithm that either computes a backup set of size $k$ for each of the $n$ devices, such that no device appears in more than $b$ backup sets, or reports (correctly) that
 no good collection of backup sets exists. \\
 
+\pagebreak
 \solution\\
 
-Solution
+\begin{algorithm}
+	\begin{algorithmic}[1]
+		\Function{DetermineBackups}{$D, b, k, d[1..n, 1..n]$}
+			\State $G \gets$ a new graph
+			\State add $s$ and $t$ to $G$
+			\For{$i \gets 1, n$}
+				\State add $d_{1, i}$ to $G$
+				\State add connection from $s$ to $d_{1, i}$ with capacity $k$
+			\EndFor
+			\For{$i \gets 1, n$}
+				\State add $d_{2, i}$ to $G$
+				\State add connection from $d_{2, i}$ to $t$ with capacity $b$
+				\For{$j \gets 1, n$}
+					\If{$i \neq j \wedge d[i, j] \leq D$}
+						\State add connection from $d_{1, j}$ to $d_{2, i}$ with capacity 1
+					\EndIf
+				\EndFor
+			\EndFor
+			\State $f \gets \Call{MaxFlow}{G}$
+			\If{the resultant flow in $f$ is not equal to $k \times n$}
+				\State \Return \Var{Null}
+			\Else
+				\State $map \gets []$
+				\For{$i \gets 1, n$}
+					\State $map[i] \gets []$
+					\For{$j \gets 1, n$}
+						\If{there is positive flow in $f$ from $d_{1, i}$ to $d_{2, j}$}
+							\State append $j$ to $map[i]$
+						\EndIf
+					\EndFor
+				\EndFor
+				\State \Return $map$
+			\EndIf
+		\EndFunction
+	\end{algorithmic}
+\end{algorithm}
+
+The idea for this algorithm is, similar to the previous problem, to convert the problem into a graph before finding the maximum flow. Here, we have three constraints:
+
+\begin{enumerate}
+	\item any device must have $k$ backup devices
+	\item any device can only be the backup device of $b$ origin devices
+	\item a backup device must be within range of its origin device
+\end{enumerate}
+
+Constraint 1 is enforced via the connection between the source node, $s$, and a device $d_{1, x}$. A flow capacity of $k$ for each device ensures that each device can only have up to $k$ backup devices in its backup set. Each device then flows to each of its $k$ backup devices via 1-capacity edges between each device $d_{1, x}$ and a backup device $d_{2, y}$. Two devices are only connected if they are within range, satisfying constraint 3.\\
+
+Finally, each backup device is connected to the destination node $t$ via an edge of capacity $b$. This ensures that backup devices may only be associated with $b$ origin devices, thus satisfying constraint 2.\\
+
+Finally, we check the resultant flow. If all $n$ paths of capacity $k$ can flow from $s$ to $t$, we have a solution to the problem; we can construct a map of each device to its backup set. Otherwise, we simply return \Var{Null}.\\
+
+We have three stages for this algorithm. In the first, we construct the graph. We have at most $2 + 2n$ vertices: a source and destination node as well as two nodes per device (one for the actual device, one for the backups). There are at most $2n + n^2$ edges in the graph; two sets of $n$ connections from $s$ and $t$ to a device, as well as at most $n^2$ connections from devices to potential backup devices. Thus, constructing the graph takes $O(n^2)$ time.\\
+
+The second stage uses the max-flow algorithm; again, Orlin's method gives us a $O(VE)$ time; since $V$ is $O(n)$ and $E$ is $O(n^2)$, the max-flow algorithm has a runtime of $O(n^3)$.\\
+
+The final stage builds a mapping of devices to backup sets. As there are $n$ devices and at most $n$ devices in each backup set, this has a worst-case runtime of $O(n^2)$. Our total runtime is thus $O(n^3)$.
 
 \end{homeworkProblem}
 
