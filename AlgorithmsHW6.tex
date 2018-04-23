@@ -305,7 +305,7 @@ Now, all of our constraints have been satisfied, but the resultant flow may be s
 
 \begin{homeworkProblem}
 
-The Island of Sodor is home to a large number of towns and villages, connected by an extensive rail network. Recently, several cases of a deadly contagious disease (either swine flu or zombies; reports are unclear) have been reported in the village of Ffarquhar. The controller of the Sodor railway plans to close down certain railway stations to prevent the disease from spreading to Tidmouth, his home town. No trains can pass through a closed station. To minimize expense (and public notice), he wants to close down as few station as possible. However, he cannot close the Ffarquhar station, because that would expose him to the disease, and he cannot close the Tidmouth station, because then he couldn?t visit his favorite pub.\\
+The Island of Sodor is home to a large number of towns and villages, connected by an extensive rail network. Recently, several cases of a deadly contagious disease (either swine flu or zombies; reports are unclear) have been reported in the village of Ffarquhar. The controller of the Sodor railway plans to close down certain railway stations to prevent the disease from spreading to Tidmouth, his home town. No trains can pass through a closed station. To minimize expense (and public notice), he wants to close down as few station as possible. However, he cannot close the Ffarquhar station, because that would expose him to the disease, and he cannot close the Tidmouth station, because then he couldn't visit his favorite pub.\\
 
 Describe and analyze an algorithm to find the minimum number of stations that must be closed to block all rail travel from Ffarquhar to Tidmouth. The Sodor rail network is represented by an undirected graph, with a vertex for each station and an edge for each rail connection between two stations. Two special vertices $f$ and $t$ represent the stations in Ffarquhar and Tidmouth.\\
 
@@ -318,7 +318,46 @@ For example, given the following input graph, your algorithm should return the n
 
 \solution\\
 
-Solution
+\begin{algorithm}
+	\begin{algorithmic}[1]
+		\Function{MinStationClosures}{$G, f, t$}
+			\State $N \gets$ a new graph
+			\ForAll{$v$ in $G.vertices$}
+				\If{$v = f \vee v = t$}
+					\State add $v$ to $N$
+				\Else
+					\State add $v_i$ and $v_o$ to $N$
+					\State connect $v_i \rightarrow v_o$ with weight $1$
+				\EndIf
+			\EndFor
+			\ForAll{$v$ in $G.vertices$}
+				\ForAll{$w$ in $v.neighbors$}
+					\If{$\neg(v = t)$}
+						\State connect $v_o \rightarrow w_i$ with weight $\infty$
+					\EndIf
+					\If{$\neg(v = f)$}
+						\State connect $w_o \rightarrow v_i$ with weight $\infty$
+					\EndIf
+				\EndFor
+			\EndFor
+			\State \Return the minimum cut of $N$
+		\EndFunction
+	\end{algorithmic}
+\end{algorithm}
+
+The minimum-cut algorithm is here assumed to determine the lowest-weighted edges to cut; an inverse assignment can be used if the min-cut algorithm instead prioritizes the highest-capacity edges.\\
+
+This algorithm is designed to duplicate all vertices in $G$ which are not $s$ or $t$. For all $v \in G$ (again, aside from $s$ or $t$), we construct two vertices, $v_i$ and $v_o$. We then construct edges in a directed graph, such that for all nodes $w$ connected to $v$, there exists a connection from $w_o$ to $v_i$ and a connection from $v_o$ to $w_i$. Without loss of generality, we assume $s$ as a source and $t$ as destination; thus, for all neighbors $n$ of $s$, we construct an edge from $s$ to $n_i$; conversely, for all neighbors $n$ of $t$, we construct an edge from $n_o$ to $t$.\\
+
+Having split each vertex into two, we can construct a connection from $v_i$ to $v_o$, and thus all paths from $s$ to $t$ are preserved. Now, we can perform a standard min-cut algorithm; our edge weightings will ensure that the algorithm only selects our newly-created ``vertex'' edges (those from $v_i$ to $v_o$); cutting this edge has the equivalent effect to removing $v$ from the graph, as now all paths from $s$ to $t$ passing through $v$ are broken.\\
+
+There are two stages to the algorithm to analyze for run-time: graph construction and then the min-cut algorithm.\\
+
+Graph construction is straightforward; we re-create the original graph $G$, doubling vertices and edges as we go; since $V$ is $O(E)$, our total run-time here is simply $O(E)$.\\
+
+For the min-cut algorithm, the fastest algorithm for computing maximum flows is $O(VE)$, as discovered by James Orlin. Since the min-cut is equivalent to the maximum flow, we can use this algorithm to determine the min-cut of our new graph.\\
+
+Thus, the total runtime of our algorithm is $O(VE)$.
 
 \end{homeworkProblem}
 
