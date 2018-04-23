@@ -273,11 +273,7 @@ We only need to run through the Ford-Fulkerson algorithm at most once, since the
 			\EndIf
 			\State $path \gets$ a path from $source$ to $sink$ which includes $e$ \Comment{DFS would likely be best here}
 			\ForAll{$edge$ in $path$} \Comment{Decrease the flow down the path from $source$ to $sink$}
-				\If{$edge$ is a forward edge}
-					\State $G.flow(edge) \gets G.flow(edge) - 1$
-				\Else
-					\State $G.flow(edge) \gets G.flow(edge) + 1$
-				\EndIf
+				\State $G.flow(edge) \gets G.flow(edge) - 1$ \Comment{Assume that the path does not contain any backwards edges}
 			\EndFor
 			\State $path \gets \Call{BFS}{G, source, sink}$ \Comment {Again, do a single iteration of Ford-Fulkerson}
 			\If{$path$ exists} \Comment{Check if there's an augmenting path}
@@ -378,11 +374,46 @@ Suppose we are given an $n \times n$ square grid, some of whose squares are colo
 		\includegraphics[scale=.75]{images/problem4}
 \end{figure}
 
-Your input is a two dimensional array $IsWhite$[1..$n$, 1..$n$] of booleans, indicated which squares are white. Your output is a single boolean. For example, given the grid above as input, your algorithm should return \alg{True}. \\
+Your input is a two dimensional array $IsWhite[1..n, 1..n]$ of booleans, indicated which squares are white. Your output is a single boolean. For example, given the grid above as input, your algorithm should return \alg{True}. \\
 
 \solution\\
 
-Solution
+\begin{algorithm}
+	\begin{algorithmic}[1]
+		\Function{CanPlaceTokens}{$IsWhite[1..n, 1..n]$}
+			\State $G \gets$ an empty graph
+			\State add $s$ and $t$ to $G$
+			\For{$i \gets 1, n$}
+				\State add $row_i$ to $G$
+				\State add an edge from $s$ to $row_i$ with capacity 1
+			\EndFor \Comment{This corresponds to the requirement of having exactly one token per row}
+			\For{$i \gets 1, n$}
+				\State add $col_i$ to $G$
+				\State add an edge from $col_i$ to $t$ with capacity 1
+			\EndFor \Comment{This corresponds to the requirement of having exactly one token per column}
+			\For{$i \gets 1, n$}
+				\For{$j \gets 1, n$}
+					\If{$IsWhite[i, j]$}
+						\State add $white_{i, j}$ to $G$
+						\State add an edge from $row_i$ to $white_{i,j}$ with capacity 1
+						\State add an edge from $white_{i,j}$ to $col_j$ with capacity 1
+					\EndIf
+				\EndFor
+			\EndFor \Comment{Add possible nodes (in this case, white nodes)}
+			\State \Return $\Call{MaxFlow}{G} = n$
+		\EndFunction
+	\end{algorithmic}
+\end{algorithm}
+
+For this algorithm, we must transform our problem into a graph. We first require our source node $s$ to output flow (of capacity 1) to nodes representing each of the $n$ rows. We also require that each of the $n$ nodes representing individual rows can output flow (again, of capacity 1) to our target node $t$.\\
+
+Now, we can construct nodes representing possible positions. Each can \emph{receive} flow from their respective row, and can \emph{send} flow to their respective column; as the edges from each row and column have capacity 1, this essentially locks the number of interior nodes that can be ``chosen'' to 1.\\
+
+We can then determine maximum flow using Orlin's method; if our maximum flow is equal to $n$, it means there is a unique node connecting each row and column, and thus there exists a solution to the given board.\\
+
+$V$ is, at worst $2 + 2n + n^2$ - a source node, a target node, two sets of $n$ vertices for each row and column, and then at most $n^2$ interior vertices for each possible position. Thus, $V$ is $O(n^2)$. Similarly, $E$ is at worst $2n + 2n^2$: one set of $n$ edges to connect the source node to each row node, another set of $n$ edges to connect each column node to the target node, and finally at most $2n^2$ edges to connect each interior vertex to its corresponding row node and column node. Therefore, $E$ is \emph{also} $O(n^2)$.\\
+
+The cost to build this graph is simply $O(V+E) = O(n^2)$; Orlin's algorithm provides the bulk of our computation at $O(VE) = O(n^4)$, which is thus the runtime of our algorithm.
 
 \end{homeworkProblem}
 
