@@ -341,7 +341,7 @@ For example, given the following input graph, your algorithm should return the n
 	\end{algorithmic}
 \end{algorithm}
 
-The minimum-cut algorithm is here assumed to determine the lowest-weighted edges to cut; an inverse assignment can be used if the min-cut algorithm instead prioritizes the highest-capacity edges.\\
+The minimum-cut algorithm is here assumed to determine the lowest-weighted edges to cut; an inverse assignment can be used if the min-cut algorithm instead prioritizes the highest-weighted edges.\\
 
 This algorithm is designed to duplicate all vertices in $G$ which are not $s$ or $t$. For all $v \in G$ (again, aside from $s$ or $t$), we construct two vertices, $v_i$ and $v_o$. We then construct edges in a directed graph, such that for all nodes $w$ connected to $v$, there exists a connection from $w_o$ to $v_i$ and a connection from $v_o$ to $w_i$. Without loss of generality, we assume $s$ as a source and $t$ as destination; thus, for all neighbors $n$ of $s$, we construct an edge from $s$ to $n_i$; conversely, for all neighbors $n$ of $t$, we construct an edge from $n_o$ to $t$.\\
 
