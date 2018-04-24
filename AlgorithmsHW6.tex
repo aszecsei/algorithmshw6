@@ -382,19 +382,19 @@ Your input is a two dimensional array $IsWhite[1..n, 1..n]$ of booleans, indicat
 	\begin{algorithmic}[1]
 		\Function{CanPlaceTokens}{$IsWhite[1..n, 1..n]$}
 			\State $G \gets$ an empty graph
-			\State add $s$ and $t$ to $G$
+			\State add vertices $s$ and $t$ to $G$
 			\For{$i \gets 1, n$}
-				\State add $row_i$ to $G$
+				\State add a vertex $row_i$ to $G$
 				\State add an edge from $s$ to $row_i$ with capacity 1
 			\EndFor \Comment{This corresponds to the requirement of having exactly one token per row}
 			\For{$i \gets 1, n$}
-				\State add $col_i$ to $G$
+				\State add a vertex $col_i$ to $G$
 				\State add an edge from $col_i$ to $t$ with capacity 1
 			\EndFor \Comment{This corresponds to the requirement of having exactly one token per column}
 			\For{$i \gets 1, n$}
 				\For{$j \gets 1, n$}
 					\If{$IsWhite[i, j]$}
-						\State add $white_{i, j}$ to $G$
+						\State add a vertex $white_{i, j}$ to $G$
 						\State add an edge from $row_i$ to $white_{i,j}$ with capacity 1
 						\State add an edge from $white_{i,j}$ to $col_j$ with capacity 1
 					\EndIf
@@ -438,13 +438,13 @@ no good collection of backup sets exists. \\
 	\begin{algorithmic}[1]
 		\Function{DetermineBackups}{$D, b, k, d[1..n, 1..n]$}
 			\State $G \gets$ a new graph
-			\State add $s$ and $t$ to $G$
+			\State add vertices $s$ and $t$ to $G$
 			\For{$i \gets 1, n$}
-				\State add $d_{1, i}$ to $G$
+				\State add a vertex $d_{1, i}$ to $G$
 				\State add connection from $s$ to $d_{1, i}$ with capacity $k$
 			\EndFor
 			\For{$i \gets 1, n$}
-				\State add $d_{2, i}$ to $G$
+				\State add a vertex $d_{2, i}$ to $G$
 				\State add connection from $d_{2, i}$ to $t$ with capacity $b$
 				\For{$j \gets 1, n$}
 					\If{$i \neq j \wedge d[i, j] \leq D$}
